@@ -8,14 +8,49 @@
         #game-canvas {
             background-color: black;
         }
+        
+        .btn {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #43A700;
+            border: 1px solid #2D7305;
+            border-radius: 2px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: #2D7305;
+        }
+        
+        #btn-start-stop {}
     </style>
 </head>
 
 <body>
-    <h1>The Pacman Game</h1>
+    <h1>The Pacman Game (<span id="score"></span>)</h1>
     <canvas id="game-canvas" width="600" height="400">
     </canvas>
+    <div>
+        <a href="#" class="btn" id="btn-start-stop">Stop</a>
+    </div>
     <script src="js/pacman.js">
+    </script>
+    <script>
+        var btnStopStart = document.getElementById("btn-start-stop");
+        btnStopStart.addEventListener("click", startStopGame);
+        document.getElementById("game-canvas").addEventListener("click", startStopGame);
+
+        function startStopGame() {
+            if (btnStopStart.innerHTML.trim() === "Start") {
+                window.isStopped = false;
+                btnStopStart.innerHTML = "Stop";
+            } else {
+                window.isStopped = true;
+                btnStopStart.innerHTML = "Start";
+            }
+        }
     </script>
 </body>
 
