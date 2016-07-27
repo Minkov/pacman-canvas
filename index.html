@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <title>The Pacman Game</title>
     <style>
-        #game-canvas {
+        #labyrinth-canvas {
             background-color: black;
         }
+        
+        #game-canvas {}
         
         .btn {
             display: inline-block;
@@ -24,16 +26,27 @@
             background-color: #2D7305;
         }
         
-        #btn-start-stop {}
+        #game-container {
+            position: relative;
+        }
+        
+        #game-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
     </style>
 </head>
 
 <body>
     <h1>The Pacman Game (<span id="score"></span>)</h1>
-    <canvas id="game-canvas" width="600" height="400">
+    <div id="game-container">
+        <canvas id="labyrinth-canvas" width="1200" height="800"></canvas>
+        <canvas id="game-canvas" width="1200" height="800"></canvas>
+    </div>
     </canvas>
     <div>
-        <a href="#" class="btn" id="btn-start-stop">Stop</a>
+        <a href="#" class="btn" id="btn-start-stop">Start</a>
     </div>
     <script src="js/pacman.js">
     </script>
@@ -42,12 +55,18 @@
         btnStopStart.addEventListener("click", startStopGame);
         document.getElementById("game-canvas").addEventListener("click", startStopGame);
 
+        document.addEventListener("keydown", function(ev) {
+            if (ev.keyCode === 32) {
+                startStopGame();
+            }
+        });
+
         function startStopGame() {
             if (btnStopStart.innerHTML.trim() === "Start") {
-                window.isStopped = false;
+                window.isRunning = true;
                 btnStopStart.innerHTML = "Stop";
             } else {
-                window.isStopped = true;
+                window.isRunning = false;
                 btnStopStart.innerHTML = "Start";
             }
         }

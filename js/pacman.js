@@ -1,13 +1,16 @@
 /* globals window document setTimeout*/
 
 window.onload = function() {
-    var canvas = document.getElementById("game-canvas");
+    var labyrinthCanvas = document.getElementById("labyrinth-canvas");
+    var gameCanvas = document.getElementById("game-canvas");
     var scoreElement = document.getElementById("score");
-    var ctx = canvas.getContext("2d");
-    var speed = 1.5;
+    var gameCtx = gameCanvas.getContext("2d");
+    var labyrinthCtx = labyrinthCanvas.getContext("2d");
+
+    var speed = 1;
     var pacman = {
-        "x": 25,
-        "y": 25,
+        "x": 10,
+        "y": 20,
         "size": 20
     };
     var isMouthOpen = false;
@@ -38,6 +41,48 @@ window.onload = function() {
         "y": -1
     }];
 
+    drawLabyrinth(labyrinthCtx);
+
+    function drawLabyrinth(ctx) {
+
+        //30x20
+        var lab = [
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", " ", " ", " ", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"]
+            ],
+            row, col, size = pacman.size * 2;
+
+        ctx.save();
+        ctx.fillStyle = "gray";
+        for (row = 0; row < lab.length; row += 1) {
+            for (col = 0; col < lab[row].length; col += 1) {
+                if (lab[row][col] === "*") {
+                    ctx.fillRect(col * size, row * size, size, size);
+                }
+            }
+        }
+
+        ctx.restore();
+    }
+
     function drawPacman(ctx, x, y, isMouthOpen) {
         isMouthOpen = !!isMouthOpen;
         ctx.save();
@@ -58,7 +103,7 @@ window.onload = function() {
         ctx.restore();
     }
 
-    function drawBalls() {
+    function drawBalls(ctx) {
         ctx.save();
         ctx.beginPath();
 
@@ -68,7 +113,6 @@ window.onload = function() {
             ctx.moveTo(ball.x, ball.y);
             ctx.arc(ball.x, ball.y, ball.size, 0, 2 * Math.PI);
             ctx.fill();
-
         });
         ctx.restore();
     }
@@ -83,20 +127,22 @@ window.onload = function() {
     }
 
     function areColliding(obj1, obj2) {
-        var obj1Sizes = getSizes(obj1),
-            obj2Sizes = getSizes(obj2);
-        return ((obj1Sizes.left <= obj2Sizes.left && obj2Sizes.left <= obj1Sizes.right) || (obj1Sizes.left <= obj2Sizes.right && obj2Sizes.right <= obj1Sizes.right)) &&
-            ((obj1Sizes.top <= obj2Sizes.top && obj2Sizes.top <= obj1Sizes.bottom) || (obj1Sizes.top <= obj2Sizes.bottom && obj2Sizes.bottom <= obj1Sizes.bottom));
+        var sizes1 = getSizes(obj1),
+            sizes2 = getSizes(obj2);
+
+        return ((sizes1.left <= sizes2.left && sizes2.left <= sizes1.right) || (sizes1.left <= sizes2.right && sizes2.right <= sizes1.right)) &&
+            ((sizes1.top <= sizes2.top && sizes2.top <= sizes1.bottom) || (sizes1.top <= sizes2.bottom && sizes2.bottom <= sizes1.bottom));
     }
 
     function getIndexOfCollidingBall() {
         var i, ball;
         for (i = 0; i < balls.length; i += 1) {
             ball = balls[i];
-            if (areColliding(ball, pacman)) {
+            if (areColliding(pacman, ball)) {
                 return i;
             }
         }
+
         return -1;
     }
 
@@ -109,12 +155,12 @@ window.onload = function() {
 
     function step() {
         var index;
-        if (window.isStopped) {
+        if (!window.isRunning) {
             window.requestAnimationFrame(step);
             return;
         }
         stepsCount += 1;
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        gameCtx.clearRect(0, 0, gameCtx.canvas.width, gameCtx.canvas.height);
 
         if (stepsCount % 10 === 0) {
             isMouthOpen = !isMouthOpen;
@@ -124,8 +170,8 @@ window.onload = function() {
         pacman.x += dirs[dir].x * speed;
         pacman.y += dirs[dir].y * speed;
 
-        drawPacman(ctx, pacman.x, pacman.y, isMouthOpen);
-        drawBalls();
+        drawPacman(gameCtx, pacman.x, pacman.y, isMouthOpen);
+        drawBalls(gameCtx);
 
         index = getIndexOfCollidingBall();
         if (index >= 0) {
