@@ -8,11 +8,15 @@ window.onload = function() {
     var labyrinthCtx = labyrinthCanvas.getContext("2d");
 
     var speed = 1;
+    var oldSpeed;
     var pacman = {
         "x": 10,
         "y": 20,
         "size": 20
     };
+
+    var obstacles = [];
+
     var isMouthOpen = false;
 
     var stepsCount = 0;
@@ -76,6 +80,11 @@ window.onload = function() {
             for (col = 0; col < lab[row].length; col += 1) {
                 if (lab[row][col] === "*") {
                     ctx.fillRect(col * size, row * size, size, size);
+                    obstacles.push({
+                        "x": col * size - size / 2,
+                        "y": row * size - size / 2,
+                        "size": size / 2
+                    });
                 }
             }
         }
