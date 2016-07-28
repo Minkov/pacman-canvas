@@ -8,14 +8,24 @@ window.onload = function() {
     var labyrinthCtx = labyrinthCanvas.getContext("2d");
 
     var speed = 1;
-    var oldSpeed;
     var pacman = {
-        "x": 10,
-        "y": 20,
+        "x": 60,
+        "y": 80,
         "size": 20
     };
 
-    var obstacles = [];
+    var nextPosition;
+
+    var bounds = {
+        "width": gameCanvas.width,
+        "height": gameCanvas.height
+    };
+
+    var rows = bounds.height / (pacman.size + 2);
+    var cols = bounds.width / (pacman.size + 2);
+
+    var obstacles = [],
+        obstacle;
 
     var isMouthOpen = false;
 
@@ -45,6 +55,8 @@ window.onload = function() {
         "y": -1
     }];
 
+    var stepsForDirChange = 0;
+
     drawLabyrinth(labyrinthCtx);
 
     function drawLabyrinth(ctx) {
@@ -52,7 +64,7 @@ window.onload = function() {
         //30x20
         var lab = [
                 ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
-                ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
+                ["*", " ", " ", " ", " ", " ", " ", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
                 ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
                 ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
                 ["*", " ", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"],
@@ -75,16 +87,19 @@ window.onload = function() {
             row, col, size = pacman.size * 2;
 
         ctx.save();
-        ctx.fillStyle = "gray";
-        for (row = 0; row < lab.length; row += 1) {
-            for (col = 0; col < lab[row].length; col += 1) {
+        ctx.fillStyle = "black";
+        for (row = 0; row < rows; row += 1) {
+            for (col = 0; col < cols; col += 1) {
+                if (!lab[row] || !lab[row][col]) {
+                    continue;
+                }
                 if (lab[row][col] === "*") {
-                    ctx.fillRect(col * size, row * size, size, size);
                     obstacles.push({
-                        "x": col * size - size / 2,
-                        "y": row * size - size / 2,
+                        "x": col * size - size / 2 + size + 1,
+                        "y": row * size - size / 2 + size + 1,
                         "size": size / 2
                     });
+                    ctx.fillRect(col * size, row * size, size, size);
                 }
             }
         }
@@ -163,6 +178,11 @@ window.onload = function() {
     stepsCount = 0;
 
     function step() {
+
+        if (stepsCount > (1 << 10)) {
+            stepsCount = 0;
+        }
+
         var index;
         if (!window.isRunning) {
             window.requestAnimationFrame(step);
@@ -173,11 +193,29 @@ window.onload = function() {
 
         if (stepsCount % 10 === 0) {
             isMouthOpen = !isMouthOpen;
-            dir = newDir;
         }
 
-        pacman.x += dirs[dir].x * speed;
-        pacman.y += dirs[dir].y * speed;
+        stepsForDirChange += 1;
+
+        nextPosition = {
+            "x": pacman.x + dirs[dir].x * speed,
+            "y": pacman.y + dirs[dir].y * speed,
+            "size": pacman.size
+        };
+
+        var areCollidingWithObstracle;
+
+        for (obstacle of obstacles) {
+            if (areColliding(nextPosition, obstacle)) {
+                areCollidingWithObstracle = true;
+                break;
+            }
+        }
+
+        if (!areCollidingWithObstracle) {
+            pacman.x += dirs[dir].x * speed;
+            pacman.y += dirs[dir].y * speed;
+        }
 
         drawPacman(gameCtx, pacman.x, pacman.y, isMouthOpen);
         drawBalls(gameCtx);
@@ -194,16 +232,16 @@ window.onload = function() {
     step();
 
     var keyCodesToDirs = {
-        37: 2,
-        38: 3,
-        39: 0,
-        40: 1
+        "37": 2,
+        "38": 3,
+        "39": 0,
+        "40": 1
     };
 
     document.addEventListener("keydown", function(ev) {
         if (!keyCodesToDirs.hasOwnProperty(ev.keyCode)) {
             return;
         }
-        newDir = keyCodesToDirs[ev.keyCode];
+        dir = keyCodesToDirs[ev.keyCode];
     });
 };
