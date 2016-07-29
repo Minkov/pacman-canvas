@@ -2,14 +2,14 @@
 "use strict";
 
 const maze = [
-        "**** ************** *******",
-        "**** ************** *******",
-        "**** ************** *******",
-        "      ** **********        ",
-        "**** *** ********** *******",
-        "****                *******",
-        "***** * *******************",
-        "*****   *******************"
+        "**** *************************",
+        "**** ************** **********",
+        "**** ************** **********",
+        "      ** **********           ",
+        "**** *** ********** **********",
+        "****                **********",
+        "****  * **********************",
+        "**** *************************"
     ],
     ballChar = " ",
     wallChar = "*";
@@ -52,11 +52,11 @@ function createGame(pacmanSelector, mazeSelector) {
         rows = maze.length,
         columns = maze[0].length;
 
-    mazeCanvas.width = columns * pacman.size;
-    mazeCanvas.height = rows * pacman.size;
+    mazeCanvas.width = (columns + 1) * pacman.size;
+    mazeCanvas.height = (rows + 1) * pacman.size;
 
-    pacmanCanvas.width = columns * pacman.size;
-    pacmanCanvas.height = rows * pacman.size;
+    pacmanCanvas.width = (columns + 1) * pacman.size;
+    pacmanCanvas.height = (rows + 1) * pacman.size;
     var steps = 0;
     const stepsToChangeMouth = 10;
 
@@ -86,7 +86,7 @@ function createGame(pacmanSelector, mazeSelector) {
         };
 
         walls.forEach(function(wall) {
-            if (areCollinding(futurePosition, wall)) {
+            if (areCollinding(futurePosition, wall) || areCollinding(wall, futurePosition)) {
                 isPacmanCollidingWithWall = true;
             }
         });
