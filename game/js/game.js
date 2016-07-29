@@ -17,6 +17,8 @@ const maze = [
 function createGame(pacmanSelector, mazeSelector) {
     var pacmanCanvas = document.querySelector(pacmanSelector),
         ctxPacman = pacmanCanvas.getContext("2d"),
+        mazeCanvas = document.querySelector(mazeSelector),
+        ctxMaze = mazeCanvas.getContext("2d"),
         isMouthOpen = false,
         pacman = {
             "x": 0,
@@ -24,11 +26,7 @@ function createGame(pacmanSelector, mazeSelector) {
             "size": 30,
             "speed": 2
         },
-        ball = {
-            "x": 200,
-            "y": 100,
-            "size": 10
-        },
+        balls = [],
         dir = 0,
         keyCodeToDirs = {
             "37": 2,
@@ -38,19 +36,26 @@ function createGame(pacmanSelector, mazeSelector) {
         };
 
     const dirDeltas = [{
-        "x": +1,
-        "y": 0
-    }, {
-        "x": 0,
-        "y": +1
-    }, {
-        "x": -1,
-        "y": 0
-    }, {
-        "x": 0,
-        "y": -1
-    }];
+            "x": +1,
+            "y": 0
+        }, {
+            "x": 0,
+            "y": +1
+        }, {
+            "x": -1,
+            "y": 0
+        }, {
+            "x": 0,
+            "y": -1
+        }],
+        rows = maze.length,
+        columns = maze[0].length;
 
+    mazeCanvas.width = columns * pacman.size;
+    mazeCanvas.height = rows * pacman.size;
+
+    pacmanCanvas.width = columns * pacman.size;
+    pacmanCanvas.height = rows * pacman.size;
     var steps = 0;
     const stepsToChangeMouth = 10;
 
@@ -64,15 +69,13 @@ function createGame(pacmanSelector, mazeSelector) {
             isMouthOpen = !isMouthOpen;
         }
 
-        drawBall(ball);
-
-        if (areCollinding(pacman, ball)) {
-            ball = {
-                "x": (Math.random() * 200) | 0,
-                "y": (Math.random() * 100) | 0,
-                "size": ball.size
-            };
-        }
+        balls.forEach(function(ball, index) {
+            if (areCollinding(pacman, ball)) {
+                ctxMaze.clearRect(ball.x, ball.y, ball.size, ball.size);
+                balls.splice(index, 1);
+                console.log(`Eated ball ${JSON.stringify(ball)}`);
+            }
+        });
 
         if (updatePacmanPosition()) {
             ctxPacman.clearRect(0, 0, pacmanCanvas.width, pacmanCanvas.height);
@@ -105,14 +108,14 @@ function createGame(pacmanSelector, mazeSelector) {
                 isBetween(sizes2.bottom, sizes1.top, sizes1.bottom));
     }
 
-    function drawBall(ballToDraw) {
-        ctxPacman.fillStyle = "yellow";
-        ctxPacman.beginPath();
+    function drawBall(ctx, ballToDraw) {
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
         var x = ballToDraw.x + ballToDraw.size / 2;
         var y = ballToDraw.y + ballToDraw.size / 2;
         var size = ballToDraw.size / 2;
-        ctxPacman.arc(x, y, size, 0, 2 * Math.PI);
-        ctxPacman.fill();
+        ctx.arc(x, y, size, 0, 2 * Math.PI);
+        ctx.fill();
     }
 
     function drawPacman() {
@@ -127,7 +130,7 @@ function createGame(pacmanSelector, mazeSelector) {
             ctxPacman.arc(x, y, size, deltaRadians + Math.PI / 4, deltaRadians + 7 * Math.PI / 4);
             ctxPacman.lineTo(x, y);
         } else {
-            drawBall(pacman);
+            drawBall(ctxPacman, pacman);
         }
 
         ctxPacman.fill();
@@ -148,7 +151,6 @@ function createGame(pacmanSelector, mazeSelector) {
     }
 
     document.body.addEventListener("keydown", function(ev) {
-        ev.preventDefault();
         if (!keyCodeToDirs.hasOwnProperty(ev.keyCode)) {
             console.log("Wrong dir");
             return;
@@ -158,8 +160,35 @@ function createGame(pacmanSelector, mazeSelector) {
         console.log(dir);
     });
 
+    function drawMazeAndGetBalls(ctx, maze, cellSize) {
+        const ballSize = 15;
+        var row,
+            col,
+            cell,
+            obj,
+            balls = [];
+        for (row = 0; row < maze.length; row += 1) {
+            for (col = 0; col < maze[row].length; col += 1) {
+                cell = maze[row][col];
+
+                if (cell === ballChar) {
+                    obj = {
+                        "x": col * cellSize + ballSize / 2,
+                        "y": row * cellSize + ballSize / 2,
+                        "size": ballSize
+                    };
+                    balls.push(obj);
+
+                    drawBall(ctx, obj);
+                }
+            }
+        }
+        return balls;
+    }
+
     return {
         "start": function() {
+            balls = drawMazeAndGetBalls(ctxMaze, maze, pacman.size);
             gameLoop();
         }
     };
