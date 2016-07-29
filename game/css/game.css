@@ -1,3 +1,21 @@
 canvas {
     border: 1px solid black;
 }
+
+#game-container {
+    position: relative;
+}
+
+#game-container .pacman-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#maze-canvas {
+    background-color: black;
+}
+
+#game-canvas {
+    z-index: 1000;
+}
