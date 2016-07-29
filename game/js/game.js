@@ -22,11 +22,12 @@ function createGame(pacmanSelector, mazeSelector) {
         isMouthOpen = false,
         pacman = {
             "x": 0,
-            "y": 0,
-            "size": 30,
+            "y": 92,
+            "size": 26,
             "speed": 2
         },
         balls = [],
+        walls = [],
         dir = 0,
         keyCodeToDirs = {
             "37": 2,
@@ -77,8 +78,23 @@ function createGame(pacmanSelector, mazeSelector) {
             }
         });
 
-        if (updatePacmanPosition()) {
-            ctxPacman.clearRect(0, 0, pacmanCanvas.width, pacmanCanvas.height);
+        var isPacmanCollidingWithWall = false;
+        var futurePosition = {
+            "x": pacman.x + dirDeltas[dir].x + 1,
+            "y": pacman.y + dirDeltas[dir].y + 1,
+            "size": pacman.size - 2
+        };
+
+        walls.forEach(function(wall) {
+            if (areCollinding(futurePosition, wall)) {
+                isPacmanCollidingWithWall = true;
+            }
+        });
+
+        if (!isPacmanCollidingWithWall) {
+            if (updatePacmanPosition()) {
+                ctxPacman.clearRect(0, 0, pacmanCanvas.width, pacmanCanvas.height);
+            }
         }
 
         window.requestAnimationFrame(gameLoop);
@@ -93,7 +109,6 @@ function createGame(pacmanSelector, mazeSelector) {
         };
         return sizes;
     }
-
 
     function isBetween(value, min, max) {
         return min <= value && value <= max;
@@ -160,12 +175,13 @@ function createGame(pacmanSelector, mazeSelector) {
         console.log(dir);
     });
 
-    function drawMazeAndGetBalls(ctx, maze, cellSize) {
+    function drawMazeAndGetBallsAndWalls(ctx, maze, cellSize) {
         var row,
             col,
             cell,
             obj,
             balls = [],
+            walls = [],
             wallImage = document.getElementById("wallImage");
 
         for (row = 0; row < maze.length; row += 1) {
@@ -187,15 +203,19 @@ function createGame(pacmanSelector, mazeSelector) {
                         "size": cellSize
                     };
                     ctx.drawImage(wallImage, obj.x, obj.y, cellSize, cellSize);
+                    walls.push(obj);
                 }
             }
         }
-        return balls;
+        return [
+            balls,
+            walls
+        ];
     }
 
     return {
         "start": function() {
-            balls = drawMazeAndGetBalls(ctxMaze, maze, pacman.size);
+            [balls, walls] = drawMazeAndGetBallsAndWalls(ctxMaze, maze, pacman.size + 4);
             gameLoop();
         }
     };
